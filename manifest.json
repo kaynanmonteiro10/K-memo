@@ -1,0 +1,21 @@
+{
+  "name": "K-memo Financeiro",
+  "short_name": "K-memo",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#2C3E50",
+  "theme_color": "#2C3E50",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

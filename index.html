@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <meta name="theme-color" content="#2C3E50">
+    
+    <title>K-memo Ultimate</title>
+    
+    <link rel="apple-touch-icon" href="icon.png">
+    
+    <link rel="manifest" href="manifest.json">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Patrick+Hand&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('Service Worker registrado!', reg))
+            .catch(err => console.log('Erro ao registrar SW:', err));
+        });
+      }
+    </script>
+</head>
+<body>
+
+    <div class="desk-container">
+        
+        <div class="notebook-tabs">
+            <button class="side-tab active" id="tabPlanner" onclick="switchMainView('planner')">PLANEJAR</button>
+            <button class="side-tab" id="tabDiary" onclick="switchMainView('diary')">DIÁRIO</button>
+        </div>
+
+        <div class="notebook-frame">
+            
+            <div class="spiral-binding"></div>
+
+            <main id="mainPage" class="paper-page">
+                
+                <div id="notificationBar" class="notification-bar" style="display:none">
+                    <span id="notifText"></span>
+                    <button onclick="closeNotif()">OK</button>
+                </div>
+
+                <header class="page-header">
+                    <div class="brand">K-memo</div>
+                    <div class="header-controls">
+                        <div class="month-nav-compact">
+                            <button class="nav-arrow" onclick="navigateMonth(-1)">❮</button>
+                            <div class="month-label" onclick="openMonthSelector()">
+                                <span id="displayMonth">DEZEMBRO</span>
+                                <span id="displayYear">2025</span>
+                            </div>
+                            <button class="nav-arrow" onclick="navigateMonth(1)">❯</button>
+                        </div>
+                        <button class="btn-tool" onclick="openReportModal()" title="Opções e Relatórios">⚙️</button>
+                    </div>
+                </header>
+
+                <div id="viewPlanner" class="view-section">
+                    
+                    <div class="planner-summary">
+                        <div class="progress-info">
+                            <span>Progresso do Mês</span>
+                            <span id="progressText">0%</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="add-plan-box">
+                        <p class="section-title">Novo Planejamento:</p>
+                        <input type="text" id="planDesc" placeholder="Ex: Pagar Luz, Meta Viagem...">
+                        
+                        <div class="plan-row">
+                            <input type="date" id="planDate">
+                            <input type="tel" id="planValue" placeholder="R$ Valor Estimado" inputmode="decimal">
+                        </div>
+                        
+                        <div class="plan-row">
+                            <select id="planType">
+                                <option value="bill">🔴 Conta a Pagar</option>
+                                <option value="income">🟢 Receita Prevista</option>
+                                <option value="save">🔵 Meta de Economia</option>
+                            </select>
+                            <button class="btn-add-plan" onclick="addPlanItem()">ADICIONAR</button>
+                        </div>
+                    </div>
+
+                    <div class="checklist-container">
+                        <h4 class="check-title text-red">Contas & Obrigações</h4>
+                        <div id="listBills" class="checklist-group"></div>
+
+                        <h4 class="check-title text-green">Entradas Previstas</h4>
+                        <div id="listIncome" class="checklist-group"></div>
+
+                        <h4 class="check-title text-blue">Metas & Cofrinho</h4>
+                        <div id="listSave" class="checklist-group"></div>
+                    </div>
+                </div>
+
+                <div id="viewDiary" class="view-section" style="display:none;">
+                    
+                    <div class="summary-box">
+                        <div class="sum-col">
+                            <label>Receita</label>
+                            <span id="monthIncome" class="val-green">0,00</span>
+                        </div>
+                        <div class="sum-divider"></div>
+                        <div class="sum-col">
+                            <label>Despesa</label>
+                            <span id="monthExpense" class="val-red">0,00</span>
+                        </div>
+                        <div class="sum-divider"></div>
+                        <div class="sum-col">
+                            <label>Guardado</label>
+                            <span id="monthInvest" class="val-blue">0,00</span>
+                        </div>
+                    </div>
+                    
+                    <div class="sum-balance-row">
+                        Saldo Disponível: <span id="monthBalance" class="val-neutral">R$ 0,00</span>
+                    </div>
+
+                    <div class="tabs-container">
+                        <button class="tab-btn active" id="btnTabExpense" onclick="switchEntryTab('expense')">SAÍDAS</button>
+                        <button class="tab-btn" id="btnTabIncome" onclick="switchEntryTab('income')">ENTRADAS</button>
+                        <button class="tab-btn" id="btnTabInvest" onclick="switchEntryTab('investment')">GUARDAR</button>
+                    </div>
+
+                    <div class="form-container">
+                        <div class="category-grid" id="categoryGrid"></div>
+
+                        <div class="input-group-row">
+                            <div class="input-wrapper">
+                                <label>DATA</label>
+                                <input type="date" id="dateInput">
+                            </div>
+                            <div class="input-wrapper grow">
+                                <label>VALOR (R$)</label>
+                                <input type="tel" id="amountInput" placeholder="0,00" inputmode="decimal">
+                            </div>
+                        </div>
+                        
+                        <div class="input-group-row">
+                            <div class="input-wrapper grow">
+                                <label>DESCRIÇÃO</label>
+                                <input type="text" id="descInput" placeholder="Descrição (Opcional)" class="full-input">
+                            </div>
+                            <div class="input-wrapper">
+                                <label>&nbsp;</label>
+                                <button class="btn-save" onclick="saveEntry()">OK</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="list-container">
+                        <div class="list-title">Extrato do Mês</div>
+                        <div id="historyList"></div>
+                    </div>
+                </div>
+
+                <div class="tip-postit">
+                    📌 <strong>Dica do dia:</strong>
+                    <p id="financialTip">Carregando...</p>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <div id="monthModal" class="modal-overlay">
+        <div class="modal-card">
+            <h3>Ir para qual mês?</h3>
+            <div class="year-nav">
+                <button onclick="changeSelectorYear(-1)">❮</button>
+                <span id="selectorYear">2025</span>
+                <button onclick="changeSelectorYear(1)">❯</button>
+            </div>
+            <div class="month-grid-modal" id="monthGrid"></div>
+            <button class="btn-cancel" onclick="closeModals()">Cancelar</button>
+        </div>
+    </div>
+
+    <div id="reportModal" class="modal-overlay">
+        <div class="modal-card">
+            <h3>Central de Dados</h3>
+            
+            <div class="modal-section">
+                <h4>📄 Exportar Relatórios</h4>
+                <label class="lbl-modal">Tipo:</label>
+                <select id="reportType" class="modal-select">
+                    <option value="diary">Extrato Realizado (Diário)</option>
+                    <option value="planner">Status Planejamento (Checklist)</option>
+                </select>
+
+                <label class="lbl-modal">Período:</label>
+                <select id="reportPeriod" class="modal-select">
+                    <option value="month">Mensal (Mês Atual)</option>
+                    <option value="year">Anual (Ano Todo)</option>
+                </select>
+                
+                <div class="modal-actions">
+                    <button class="btn-action pdf" onclick="generateProfessionalPDF()">Baixar PDF</button>
+                    <button class="btn-action csv" onclick="generateExcel()">Baixar Excel</button>
+                </div>
+            </div>
+
+            <hr class="modal-divider">
+
+            <div class="modal-section">
+                <h4>💾 Backup e Restauração</h4>
+                <p style="font-size:0.8rem; color:#666; margin-bottom:10px;">
+                    Salve seus dados caso troque de celular.
+                </p>
+                <div class="modal-actions">
+                    <button class="btn-action backup" onclick="backupData()">Salvar Backup</button>
+                    <button class="btn-action restore" onclick="document.getElementById('restoreInput').click()">Restaurar</button>
+                </div>
+                <input type="file" id="restoreInput" style="display:none" accept=".json" onchange="restoreData(this)">
+            </div>
+            
+            <button class="btn-cancel" onclick="closeModals()">Fechar</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
