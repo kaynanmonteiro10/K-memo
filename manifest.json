@@ -1,7 +1,7 @@
 {
-  "name": "K-memo Financeiro",
+  "name": "K-memo Ultimate",
   "short_name": "K-memo",
-  "description": "Seu caderno financeiro inteligente e offline.",
+  "description": "Seu controle financeiro pessoal e offline.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
