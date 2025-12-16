@@ -8,9 +8,8 @@
     
     <title>K-memo Ultimate</title>
     
-    <link rel="apple-touch-icon" href="icon.png">
-    
     <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.png">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Patrick+Hand&display=swap" rel="stylesheet">
@@ -24,8 +23,8 @@
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('./sw.js')
-            .then(reg => console.log('Service Worker registrado!', reg))
-            .catch(err => console.log('Erro ao registrar SW:', err));
+            .then(reg => console.log('SW registrado.', reg))
+            .catch(err => console.error('Erro SW:', err));
         });
       }
     </script>
@@ -52,16 +51,20 @@
 
                 <header class="page-header">
                     <div class="brand">K-memo</div>
+                    
                     <div class="header-controls">
                         <div class="month-nav-compact">
                             <button class="nav-arrow" onclick="navigateMonth(-1)">❮</button>
                             <div class="month-label" onclick="openMonthSelector()">
-                                <span id="displayMonth">DEZEMBRO</span>
+                                <span id="displayMonth">DEZ</span>
                                 <span id="displayYear">2025</span>
                             </div>
                             <button class="nav-arrow" onclick="navigateMonth(1)">❯</button>
                         </div>
-                        <button class="btn-tool" onclick="openReportModal()" title="Opções e Relatórios">⚙️</button>
+                        
+                        <button class="btn-privacy" onclick="togglePrivacy()" id="btnPrivacy" title="Ocultar Valores">👁️</button>
+                        
+                        <button class="btn-tool" onclick="openReportModal()" title="Opções">⚙️</button>
                     </div>
                 </header>
 
@@ -69,7 +72,7 @@
                     
                     <div class="planner-summary">
                         <div class="progress-info">
-                            <span>Progresso do Mês</span>
+                            <span>Conclusão do Planejamento</span>
                             <span id="progressText">0%</span>
                         </div>
                         <div class="progress-bar-container">
@@ -78,8 +81,8 @@
                     </div>
 
                     <div class="add-plan-box">
-                        <p class="section-title">Novo Planejamento:</p>
-                        <input type="text" id="planDesc" placeholder="Ex: Pagar Luz, Meta Viagem...">
+                        <p class="section-title">Adicionar Novo Item:</p>
+                        <input type="text" id="planDesc" placeholder="Ex: Pagar Luz, Juntar para viagem...">
                         
                         <div class="plan-row">
                             <input type="date" id="planDate">
@@ -90,7 +93,7 @@
                             <select id="planType">
                                 <option value="bill">🔴 Conta a Pagar</option>
                                 <option value="income">🟢 Receita Prevista</option>
-                                <option value="save">🔵 Meta de Economia</option>
+                                <option value="save">🔵 Meta/Guardar</option>
                             </select>
                             <button class="btn-add-plan" onclick="addPlanItem()">ADICIONAR</button>
                         </div>
@@ -103,7 +106,7 @@
                         <h4 class="check-title text-green">Entradas Previstas</h4>
                         <div id="listIncome" class="checklist-group"></div>
 
-                        <h4 class="check-title text-blue">Metas & Cofrinho</h4>
+                        <h4 class="check-title text-blue">Metas & Economia</h4>
                         <div id="listSave" class="checklist-group"></div>
                     </div>
                 </div>
@@ -128,7 +131,7 @@
                     </div>
                     
                     <div class="sum-balance-row">
-                        Saldo Disponível: <span id="monthBalance" class="val-neutral">R$ 0,00</span>
+                        Saldo em Caixa: <span id="monthBalance" class="val-neutral">R$ 0,00</span>
                     </div>
 
                     <div class="tabs-container">
@@ -154,7 +157,7 @@
                         <div class="input-group-row">
                             <div class="input-wrapper grow">
                                 <label>DESCRIÇÃO</label>
-                                <input type="text" id="descInput" placeholder="Descrição (Opcional)" class="full-input">
+                                <input type="text" id="descInput" placeholder="Opcional" class="full-input">
                             </div>
                             <div class="input-wrapper">
                                 <label>&nbsp;</label>
@@ -170,8 +173,7 @@
                 </div>
 
                 <div class="tip-postit">
-                    📌 <strong>Dica do dia:</strong>
-                    <p id="financialTip">Carregando...</p>
+                    📌 <strong>Dica:</strong> <span id="financialTip">...</span>
                 </div>
 
             </main>
@@ -180,7 +182,7 @@
 
     <div id="monthModal" class="modal-overlay">
         <div class="modal-card">
-            <h3>Ir para qual mês?</h3>
+            <h3>Navegar</h3>
             <div class="year-nav">
                 <button onclick="changeSelectorYear(-1)">❮</button>
                 <span id="selectorYear">2025</span>
@@ -195,35 +197,30 @@
         <div class="modal-card">
             <h3>Central de Dados</h3>
             
+            <div id="installContainer" style="display:none; margin-bottom: 15px; border-bottom: 1px dashed #ccc; padding-bottom: 10px;">
+                <button class="btn-action install" id="btnInstallApp">📲 Instalar Aplicativo</button>
+            </div>
+
             <div class="modal-section">
                 <h4>📄 Exportar Relatórios</h4>
-                <label class="lbl-modal">Tipo:</label>
                 <select id="reportType" class="modal-select">
                     <option value="diary">Extrato Realizado (Diário)</option>
-                    <option value="planner">Status Planejamento (Checklist)</option>
+                    <option value="planner">Status Planejamento</option>
                 </select>
-
-                <label class="lbl-modal">Período:</label>
                 <select id="reportPeriod" class="modal-select">
-                    <option value="month">Mensal (Mês Atual)</option>
-                    <option value="year">Anual (Ano Todo)</option>
+                    <option value="month">Mês Atual</option>
+                    <option value="year">Ano Atual</option>
                 </select>
-                
                 <div class="modal-actions">
-                    <button class="btn-action pdf" onclick="generateProfessionalPDF()">Baixar PDF</button>
-                    <button class="btn-action csv" onclick="generateExcel()">Baixar Excel</button>
+                    <button class="btn-action pdf" onclick="generateProfessionalPDF()">PDF</button>
+                    <button class="btn-action csv" onclick="generateExcel()">Excel</button>
                 </div>
             </div>
 
-            <hr class="modal-divider">
-
-            <div class="modal-section">
-                <h4>💾 Backup e Restauração</h4>
-                <p style="font-size:0.8rem; color:#666; margin-bottom:10px;">
-                    Salve seus dados caso troque de celular.
-                </p>
+            <div class="modal-section" style="border-bottom: none;">
+                <h4>💾 Backup Seguro</h4>
                 <div class="modal-actions">
-                    <button class="btn-action backup" onclick="backupData()">Salvar Backup</button>
+                    <button class="btn-action backup" onclick="backupData()">Salvar</button>
                     <button class="btn-action restore" onclick="document.getElementById('restoreInput').click()">Restaurar</button>
                 </div>
                 <input type="file" id="restoreInput" style="display:none" accept=".json" onchange="restoreData(this)">
