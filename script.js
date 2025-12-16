@@ -6,25 +6,28 @@ let entryType = 'expense';
 let selectedCategory = null;
 let viewDate = new Date(); 
 let selectorYear = viewDate.getFullYear();
-let isPrivacyOn = false; // Estado da privacidade
-let deferredPrompt; // Para o botão de instalar PWA
+let isPrivacyOn = false; // Controle do Modo Privacidade
+let deferredPrompt; // Armazena o evento de instalação PWA
 
 const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 const tips = [
     "Pague suas contas assim que receber o salário.",
     "A regra 50-30-20 ajuda a dividir gastos essenciais e lazer.",
     "Construa uma reserva de emergência antes de investir.",
-    "Revise assinaturas que você não usa.",
-    "Sempre negocie descontos à vista.",
-    "Anote os pequenos gastos, eles somam muito.",
-    "Evite compras por impulso: espere 24h."
+    "Revise assinaturas mensais que você não usa.",
+    "Sempre negocie descontos para pagamentos à vista.",
+    "Anote os pequenos gastos, eles somam muito no final do mês.",
+    "Evite compras por impulso: espere 24h antes de decidir."
 ];
 
 /* ==========================================================================
    2. BANCO DE DADOS (LOCALSTORAGE)
    ========================================================================== */
+// Carrega dados ou inicia arrays vazios
 let planItems = JSON.parse(localStorage.getItem('kmemo_plan_ultimate')) || [];
 let transactions = JSON.parse(localStorage.getItem('kmemo_trans_ultimate')) || [];
+
+// Categorias Padrão
 let userCats = JSON.parse(localStorage.getItem('kmemo_cats_ultimate')) || {
     expense: ['Aluguel', 'Mercado', 'Luz/Água', 'Internet', 'Lazer', 'Transporte', 'Saúde'],
     income: ['Salário', 'Vendas', 'Freelance', 'Aposentadoria'],
@@ -41,34 +44,38 @@ document.addEventListener('DOMContentLoaded', () => {
     showRandomTip();
     switchEntryTab('expense');
 
-    // Pedir permissão de notificação no primeiro clique
+    // Tenta pedir permissão de notificação no primeiro clique do usuário
     if ("Notification" in window && Notification.permission !== "granted") {
         document.body.addEventListener('click', () => Notification.requestPermission(), { once: true });
     }
 });
 
-// Captura o evento de "Pode Instalar" do navegador
+// Captura o evento de "Pode Instalar" do navegador (PWA)
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    // Mostra o botão de instalar dentro do modal
+    // Mostra o botão de instalar dentro do modal de opções
     const installContainer = document.getElementById('installContainer');
     if (installContainer) installContainer.style.display = 'block';
     
-    document.getElementById('btnInstallApp').addEventListener('click', async () => {
-        if (deferredPrompt) {
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            if (outcome === 'accepted') {
-                installContainer.style.display = 'none';
+    // Configura o clique do botão
+    const btnInstall = document.getElementById('btnInstallApp');
+    if(btnInstall) {
+        btnInstall.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    installContainer.style.display = 'none';
+                }
+                deferredPrompt = null;
             }
-            deferredPrompt = null;
-        }
-    });
+        });
+    }
 });
 
 /* ==========================================================================
-   4. FUNÇÕES DE UI (NOTIFICAÇÕES, DICAS, PRIVACIDADE)
+   4. FUNÇÕES DE UTILIDADE E UI
    ========================================================================== */
 function showRandomTip() {
     const random = Math.floor(Math.random() * tips.length);
@@ -78,6 +85,7 @@ function showRandomTip() {
 
 function checkReminders() {
     const today = new Date().toISOString().split('T')[0];
+    // Filtra contas a pagar (bill) não feitas e com data <= hoje
     const alerts = planItems.filter(p => !p.done && p.type === 'bill' && p.date <= today);
     const bar = document.getElementById('notificationBar');
 
@@ -85,20 +93,24 @@ function checkReminders() {
         bar.style.display = 'flex';
         document.getElementById('notifText').innerText = `Atenção: ${alerts.length} conta(s) vencendo ou atrasadas!`;
         
-        // Notificação do Sistema
+        // Envia Notificação do Sistema se permitido
         if ("Notification" in window && Notification.permission === "granted") {
             new Notification("K-memo Alerta", {
-                body: `Você tem ${alerts.length} contas pendentes hoje.`,
-                icon: 'icon.png'
+                body: `Você tem ${alerts.length} contas para pagar hoje.`,
+                icon: 'icon.png',
+                vibrate: [200, 100, 200]
             });
         }
     } else {
         bar.style.display = 'none';
     }
 }
-function closeNotif() { document.getElementById('notificationBar').style.display = 'none'; }
 
-// --- MODO PRIVACIDADE ---
+function closeNotif() {
+    document.getElementById('notificationBar').style.display = 'none';
+}
+
+// --- MODO PRIVACIDADE (BLUR) ---
 function togglePrivacy() {
     isPrivacyOn = !isPrivacyOn;
     const btn = document.getElementById('btnPrivacy');
@@ -114,7 +126,7 @@ function applyPrivacy() {
         if(el) isPrivacyOn ? el.classList.add('blur-value') : el.classList.remove('blur-value');
     });
 
-    // Elementos dinâmicos (Listas)
+    // Elementos dinâmicos (Listas e Checklists)
     const dynamicEls = document.querySelectorAll('.check-val, .hist-item strong');
     dynamicEls.forEach(el => {
         isPrivacyOn ? el.classList.add('blur-value') : el.classList.remove('blur-value');
@@ -127,9 +139,11 @@ function applyPrivacy() {
 function updateInputsDate() {
     const y = viewDate.getFullYear();
     const m = String(viewDate.getMonth() + 1).padStart(2, '0');
+    
     const today = new Date();
     let d = '01';
     
+    // Se for o mês atual, sugere o dia de hoje
     if(today.getMonth() === viewDate.getMonth() && today.getFullYear() === viewDate.getFullYear()) {
         d = String(today.getDate()).padStart(2, '0');
     }
@@ -148,14 +162,18 @@ function updateHeader() {
 
 function navigateMonth(step) {
     const page = document.getElementById('mainPage');
+    // Animação de Saída
     page.classList.add('turn-out');
     
     setTimeout(() => {
         viewDate.setMonth(viewDate.getMonth() + step);
         updateInputsDate();
         updateHeader();
+        
+        // Animação de Entrada
         page.classList.remove('turn-out');
         page.classList.add('turn-in');
+        
         setTimeout(() => page.classList.remove('turn-in'), 600);
     }, 300);
 }
@@ -177,9 +195,13 @@ function addPlanItem() {
     const val = parseFloat(document.getElementById('planValue').value);
     const type = document.getElementById('planType').value;
 
-    if(!desc || !date || isNaN(val)) return alert("Preencha todos os campos.");
+    if(!desc || !date || isNaN(val)) return alert("Preencha todos os campos corretamente.");
 
-    planItems.push({ id: Date.now(), desc, date, val, type, done: false });
+    planItems.push({
+        id: Date.now(),
+        desc, date, val, type,
+        done: false
+    });
     savePlan();
     
     document.getElementById('planDesc').value = "";
@@ -193,19 +215,32 @@ function togglePlanItem(id) {
     if(!item) return;
 
     if(!item.done) {
-        if(confirm(`Concluir "${item.desc}" e lançar no Diário?`)) {
+        if(confirm(`Concluir "${item.desc}"? \nDeseja lançar isso automaticamente no Diário?`)) {
             item.done = true;
-            let tType = 'expense', tCat = 'Planejado';
+            
+            // Lança no Diário
+            let tType = 'expense';
+            let tCat = 'Planejado';
+            
             if(item.type === 'income') tType = 'income';
             else if(item.type === 'save') { tType = 'investment'; tCat = 'Meta'; }
-            else tCat = 'Contas';
+            else tCat = 'Contas'; // bill
 
-            transactions.push({ id: Date.now(), date: item.date, type: tType, cat: tCat, desc: item.desc + " (Via Planejador)", val: item.val });
+            transactions.push({
+                id: Date.now(),
+                date: item.date,
+                type: tType,
+                cat: tCat,
+                desc: item.desc + " (Via Planejador)",
+                val: item.val
+            });
             saveTrans();
             renderDiary();
         }
     } else {
-        if(confirm("Reabrir este item?")) item.done = false;
+        if(confirm("Deseja reabrir este item pendente?")) {
+            item.done = false;
+        }
     }
     savePlan();
     renderPlanner();
@@ -213,7 +248,7 @@ function togglePlanItem(id) {
 }
 
 function deletePlanItem(id) {
-    if(confirm("Excluir item planejado?")) {
+    if(confirm("Tem certeza que deseja apagar este item do planejamento?")) {
         planItems = planItems.filter(p => p.id !== id);
         savePlan();
         renderPlanner();
@@ -231,13 +266,14 @@ function renderPlanner() {
     renderCheckList('listIncome', monthItems.filter(p => p.type === 'income'));
     renderCheckList('listSave', monthItems.filter(p => p.type === 'save'));
 
+    // Barra de Progresso
     const total = monthItems.length;
     const done = monthItems.filter(p => p.done).length;
     const perc = total === 0 ? 0 : Math.round((done/total)*100);
     document.getElementById('progressBar').style.width = perc + '%';
     document.getElementById('progressText').innerText = `${perc}%`;
     
-    applyPrivacy(); // Reaplica o blur se necessário
+    applyPrivacy(); // Garante que o blur seja aplicado se ativo
 }
 
 function renderCheckList(elemId, items) {
@@ -246,7 +282,7 @@ function renderCheckList(elemId, items) {
     items.sort((a,b) => new Date(a.date) - new Date(b.date));
 
     if(items.length === 0) {
-        el.innerHTML = '<div style="color:#999;font-size:0.8rem;padding:5px;">Nenhum item.</div>';
+        el.innerHTML = '<div style="color:#999;font-size:0.8rem;padding:5px;">Nenhum item planejado.</div>';
         return;
     }
 
@@ -292,15 +328,16 @@ function renderCategoryGrid() {
         grid.appendChild(btn);
     });
     
+    // Botão Adicionar Categoria
     const addBtn = document.createElement('div');
     addBtn.className = 'cat-chip add-btn';
     addBtn.innerText = '+ Criar';
     addBtn.onclick = () => {
-        const name = prompt("Nome da categoria:");
-        if(name) {
-            userCats[entryType].push(name);
+        const name = prompt("Nome da nova categoria:");
+        if(name && name.trim() !== "") {
+            userCats[entryType].push(name.trim());
             localStorage.setItem('kmemo_cats_ultimate', JSON.stringify(userCats));
-            selectedCategory = name;
+            selectedCategory = name.trim();
             renderCategoryGrid();
         }
     };
@@ -313,11 +350,16 @@ function saveEntry() {
     const descVal = document.getElementById('descInput').value;
 
     if(!selectedCategory) return alert("Selecione uma categoria.");
-    if(isNaN(amountVal) || amountVal <= 0) return alert("Valor inválido.");
-    if(!dateVal) return alert("Data obrigatória.");
+    if(isNaN(amountVal) || amountVal <= 0) return alert("Digite um valor válido.");
+    if(!dateVal) return alert("A data é obrigatória.");
 
     transactions.push({
-        id: Date.now(), date: dateVal, type: entryType, cat: selectedCategory, desc: descVal.trim() || selectedCategory, val: amountVal
+        id: Date.now(),
+        date: dateVal,
+        type: entryType,
+        cat: selectedCategory,
+        desc: descVal.trim() || selectedCategory,
+        val: amountVal
     });
     saveTrans();
     
@@ -327,7 +369,7 @@ function saveEntry() {
 }
 
 function deleteTransaction(id) {
-    if(confirm("Excluir este lançamento permanentemente?")) {
+    if(confirm("Deseja excluir este lançamento do extrato permanentemente?")) {
         transactions = transactions.filter(t => t.id !== id);
         saveTrans();
         renderDiary();
@@ -362,7 +404,7 @@ function renderDiary() {
     monthTrans.sort((a,b) => new Date(b.date) - new Date(a.date));
 
     if(monthTrans.length === 0) {
-        list.innerHTML = '<div style="text-align:center;padding:20px;color:#999;">Sem lançamentos.</div>';
+        list.innerHTML = '<div style="text-align:center;padding:20px;color:#999;">Nenhum lançamento registrado.</div>';
     } else {
         monthTrans.forEach(t => {
             const day = t.date.split('-')[2];
@@ -383,14 +425,19 @@ function renderDiary() {
                 </div>`;
         });
     }
-    applyPrivacy();
+    applyPrivacy(); // Garante blur
 }
 
 /* ==========================================================================
-   8. BACKUP, RESTORE E RELATÓRIOS
+   8. BACKUP, RESTAURAÇÃO E RELATÓRIOS
    ========================================================================== */
 function backupData() {
-    const backup = { plan: planItems, trans: transactions, cats: userCats, date: new Date() };
+    const backup = {
+        plan: planItems,
+        trans: transactions,
+        cats: userCats,
+        date: new Date().toISOString()
+    };
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup));
     const a = document.createElement('a');
     a.setAttribute("href", dataStr);
@@ -408,17 +455,18 @@ function restoreData(input) {
         try {
             const data = JSON.parse(e.target.result);
             if(data.plan && data.trans) {
-                if(confirm("Substituir dados atuais pelo backup?")) {
+                if(confirm("ATENÇÃO: Isso substituirá todos os dados atuais pelos do backup. Continuar?")) {
                     planItems = data.plan;
                     transactions = data.trans;
                     userCats = data.cats || userCats;
-                    savePlan(); saveTrans();
+                    savePlan();
+                    saveTrans();
                     localStorage.setItem('kmemo_cats_ultimate', JSON.stringify(userCats));
-                    alert("Restaurado com sucesso!");
+                    alert("Dados restaurados com sucesso!");
                     location.reload();
                 }
-            } else alert("Arquivo inválido.");
-        } catch(err) { alert("Erro ao ler arquivo."); }
+            } else alert("Arquivo de backup inválido.");
+        } catch(err) { alert("Erro ao ler o arquivo."); }
     };
     reader.readAsText(file);
 }
@@ -440,22 +488,42 @@ function generateProfessionalPDF() {
     if(type === 'diary') {
         title = "EXTRATO REALIZADO";
         const data = transactions.filter(filterFn).sort((a,b) => new Date(a.date) - new Date(b.date));
-        if(!data.length) return alert("Sem dados.");
-        body = data.map(t => [t.date.split('-').reverse().join('/'), t.type.toUpperCase(), t.cat, t.desc, `R$ ${t.val.toFixed(2)}`]);
+        if(!data.length) return alert("Não há dados para gerar relatório.");
         
-        doc.autoTable({ head: [['Data', 'Tipo', 'Categoria', 'Descrição', 'Valor']], body: body, startY: 40, theme: 'grid', headStyles: {fillColor: headColor} });
+        body = data.map(t => [
+            t.date.split('-').reverse().join('/'),
+            t.type === 'income' ? 'ENTRADA' : (t.type === 'expense' ? 'SAÍDA' : 'GUARDADO'),
+            t.cat,
+            t.desc,
+            `R$ ${t.val.toFixed(2)}`
+        ]);
+        
+        doc.autoTable({
+            head: [['Data', 'Tipo', 'Categoria', 'Descrição', 'Valor']],
+            body: body, startY: 40, theme: 'grid', headStyles: {fillColor: headColor}
+        });
     } else {
         title = "STATUS PLANEJAMENTO";
         headColor = [230, 126, 34];
         const data = planItems.filter(filterFn).sort((a,b) => new Date(a.date) - new Date(b.date));
-        if(!data.length) return alert("Sem dados.");
-        body = data.map(p => [p.date.split('-').reverse().join('/'), p.type.toUpperCase(), p.desc, p.done?'OK':'PENDENTE', `R$ ${p.val.toFixed(2)}`]);
+        if(!data.length) return alert("Não há dados para gerar relatório.");
         
-        doc.autoTable({ head: [['Data', 'Tipo', 'Descrição', 'Status', 'Valor']], body: body, startY: 40, theme: 'grid', headStyles: {fillColor: headColor} });
+        body = data.map(p => [
+            p.date.split('-').reverse().join('/'),
+            p.type === 'bill' ? 'CONTA' : (p.type === 'income' ? 'RECEITA' : 'META'),
+            p.desc,
+            p.done ? 'OK' : 'PENDENTE',
+            `R$ ${p.val.toFixed(2)}`
+        ]);
+        
+        doc.autoTable({
+            head: [['Data', 'Tipo', 'Descrição', 'Status', 'Valor']],
+            body: body, startY: 40, theme: 'grid', headStyles: {fillColor: headColor}
+        });
     }
 
     doc.setFontSize(18);
-    doc.text("K-memo Relatório", 14, 20);
+    doc.text("K-memo Relatório Financeiro", 14, 20);
     doc.setFontSize(10);
     doc.text(`${title} - ${period==='month' ? monthNames[viewDate.getMonth()] : 'Anual'} ${viewDate.getFullYear()}`, 14, 30);
     doc.save(`kmemo_${type}.pdf`);
@@ -473,11 +541,12 @@ function generateExcel() {
     a.click();
 }
 
+// Helpers de Salvamento
 function savePlan() { localStorage.setItem('kmemo_plan_ultimate', JSON.stringify(planItems)); }
 function saveTrans() { localStorage.setItem('kmemo_trans_ultimate', JSON.stringify(transactions)); }
 
 /* ==========================================================================
-   9. MODAIS
+   9. MODAIS DE NAVEGAÇÃO
    ========================================================================== */
 function openMonthSelector() {
     selectorYear = viewDate.getFullYear();
@@ -496,7 +565,13 @@ function renderMonthGrid() {
         const btn = document.createElement('div');
         btn.className = `m-btn ${i === viewDate.getMonth() && selectorYear === viewDate.getFullYear() ? 'selected' : ''}`;
         btn.innerText = n.substring(0,3);
-        btn.onclick = () => { viewDate.setMonth(i); viewDate.setFullYear(selectorYear); closeModals(); updateInputsDate(); updateHeader(); };
+        btn.onclick = () => {
+            viewDate.setMonth(i);
+            viewDate.setFullYear(selectorYear);
+            closeModals();
+            updateInputsDate();
+            updateHeader();
+        };
         grid.appendChild(btn);
     });
 }
