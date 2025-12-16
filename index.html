@@ -173,7 +173,7 @@
                 </div>
 
                 <div class="tip-postit">
-                    📌 <strong>Dica:</strong> <span id="financialTip">...</span>
+                    📌 <strong>Dica:</strong> <span id="financialTip">Carregando...</span>
                 </div>
 
             </main>
@@ -203,22 +203,29 @@
 
             <div class="modal-section">
                 <h4>📄 Exportar Relatórios</h4>
+                <label class="lbl-modal">Tipo:</label>
                 <select id="reportType" class="modal-select">
                     <option value="diary">Extrato Realizado (Diário)</option>
-                    <option value="planner">Status Planejamento</option>
+                    <option value="planner">Status Planejamento (Checklist)</option>
                 </select>
+
+                <label class="lbl-modal">Período:</label>
                 <select id="reportPeriod" class="modal-select">
                     <option value="month">Mês Atual</option>
                     <option value="year">Ano Atual</option>
                 </select>
+                
                 <div class="modal-actions">
-                    <button class="btn-action pdf" onclick="generateProfessionalPDF()">PDF</button>
-                    <button class="btn-action csv" onclick="generateExcel()">Excel</button>
+                    <button class="btn-action pdf" onclick="generateProfessionalPDF()">Baixar PDF</button>
+                    <button class="btn-action csv" onclick="generateExcel()">Baixar Excel</button>
                 </div>
             </div>
 
             <div class="modal-section" style="border-bottom: none;">
-                <h4>💾 Backup Seguro</h4>
+                <h4>💾 Backup e Restauração</h4>
+                <p style="font-size:0.8rem; color:#666; margin-bottom:10px;">
+                    Salve seus dados caso troque de celular.
+                </p>
                 <div class="modal-actions">
                     <button class="btn-action backup" onclick="backupData()">Salvar</button>
                     <button class="btn-action restore" onclick="document.getElementById('restoreInput').click()">Restaurar</button>
