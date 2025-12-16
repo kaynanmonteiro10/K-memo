@@ -2,36 +2,35 @@
    1. VARIÁVEIS E RESET GLOBAL
    ========================================= */
 :root {
-    /* Cores do Ambiente (Mesa) */
+    /* Cores do Ambiente */
     --desk-bg: #2C3E50;
     
     /* Cores do Papel */
     --paper-bg: #FDFBF7;
     --paper-dots: #CCCCCC;
     
-    /* Tipografia e Texto */
-    --text-primary: #111111; /* Preto absoluto para contraste */
+    /* Tipografia */
+    --text-primary: #111111;
     --text-secondary: #555555;
     --text-muted: #888888;
     
     /* Cores Funcionais */
-    --color-expense: #C0392B;   /* Vermelho (Saída) */
-    --color-income: #27AE60;    /* Verde (Entrada) */
-    --color-invest: #2980B9;    /* Azul (Guardar/Meta) */
+    --color-expense: #C0392B;   /* Vermelho */
+    --color-income: #27AE60;    /* Verde */
+    --color-invest: #2980B9;    /* Azul */
     
-    /* Cores das Abas Laterais */
+    /* Cores das Abas */
     --tab-planner: #E67E22;     /* Laranja */
     --tab-diary: #2980B9;       /* Azul */
     
-    /* Elementos de Interface */
+    /* Elementos UI */
     --color-dark: #34495E;
     --border-color: #BDC3C7;
     
     /* Fontes */
     --font-ui: 'Roboto', sans-serif;
-    --font-hand: 'Patrick Hand', cursive; /* Estilo manuscrito */
+    --font-hand: 'Patrick Hand', cursive;
     
-    /* Tamanhos */
     --radius-std: 8px;
 }
 
@@ -48,16 +47,15 @@ body {
     display: flex;
     justify-content: center;
     min-height: 100vh;
-    overflow-x: hidden; /* Evita rolagem na animação 3D */
+    overflow-x: hidden;
 }
 
-/* Scrollbar Customizada (WebKit) */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #CCC; border-radius: 10px; }
 
 /* =========================================
-   2. ESTRUTURA: MESA E CADERNO
+   2. ESTRUTURA GERAL
    ========================================= */
 .desk-container {
     width: 100%;
@@ -65,7 +63,7 @@ body {
     padding: 10px;
     display: flex;
     position: relative;
-    perspective: 1500px; /* Profundidade 3D essencial */
+    perspective: 1500px;
 }
 
 .notebook-frame {
@@ -76,50 +74,37 @@ body {
     z-index: 10;
 }
 
-/* --- ABAS LATERAIS (FICHÁRIO) --- */
+/* --- ABAS LATERAIS --- */
 .notebook-tabs {
     display: flex;
     flex-direction: column;
     gap: 12px;
     margin-top: 80px;
-    margin-right: -4px; /* Encaixa embaixo do caderno */
+    margin-right: -4px;
     z-index: 0;
 }
 
 .side-tab {
-    width: 38px;
-    height: 100px;
-    padding: 10px 5px;
-    border: none;
-    border-radius: 12px 0 0 12px;
-    background: #BDC3C7;
-    color: #555;
-    cursor: pointer;
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
-    font-weight: 700;
-    font-size: 0.85rem;
-    font-family: var(--font-ui);
+    width: 38px; height: 100px; padding: 10px 5px;
+    border: none; border-radius: 12px 0 0 12px;
+    background: #BDC3C7; color: #555; cursor: pointer;
+    writing-mode: vertical-rl; text-orientation: mixed;
+    font-weight: 700; font-size: 0.85rem; font-family: var(--font-ui);
     box-shadow: -3px 3px 6px rgba(0,0,0,0.2);
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .side-tab:hover { transform: translateX(-3px); }
-
 .side-tab.active {
-    width: 48px;
-    color: white;
-    transform: translateX(-5px);
+    width: 48px; color: white; transform: translateX(-5px);
     box-shadow: -4px 4px 8px rgba(0,0,0,0.3);
 }
-
 #tabPlanner.active { background-color: var(--tab-planner); }
 #tabDiary.active { background-color: var(--tab-diary); }
 
-/* --- ESPIRAL (ARAME) --- */
+/* --- ESPIRAL --- */
 .spiral-binding {
-    width: 45px;
-    flex-shrink: 0;
+    width: 45px; flex-shrink: 0;
     background: repeating-linear-gradient(
         180deg, 
         #2c3e50 0px, #2c3e50 10px, 
@@ -132,7 +117,7 @@ body {
     position: relative;
 }
 
-/* --- PÁGINA DE PAPEL (ANIMAÇÃO) --- */
+/* --- PÁGINA (PAPEL) --- */
 .paper-page {
     flex-grow: 1;
     background-color: var(--paper-bg);
@@ -141,8 +126,6 @@ body {
     box-shadow: 10px 10px 30px rgba(0,0,0,0.4);
     overflow-y: auto;
     position: relative;
-    
-    /* Textura Pontilhada */
     background-image: radial-gradient(var(--paper-dots) 1.5px, transparent 1.5px);
     background-size: 22px 22px;
     
@@ -152,81 +135,62 @@ body {
     transition: transform 0.5s ease-in-out, opacity 0.5s;
 }
 
-/* Classes JS para virar página */
 .turn-out { transform: rotateY(-100deg); opacity: 0.6; pointer-events: none; }
 .turn-in { animation: turnInAnim 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-
 @keyframes turnInAnim {
     0% { transform: rotateY(-100deg); opacity: 0; }
     100% { transform: rotateY(0deg); opacity: 1; }
 }
 
 /* =========================================
-   3. CABEÇALHO E NAVEGAÇÃO
+   3. CABEÇALHO
    ========================================= */
 .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 3px solid var(--color-dark);
-    padding-bottom: 12px;
-    margin-bottom: 20px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 3px solid var(--color-dark); padding-bottom: 12px; margin-bottom: 20px;
 }
 
 .brand {
-    font-family: var(--font-hand);
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    letter-spacing: 1px;
+    font-family: var(--font-hand); font-size: 2rem;
+    font-weight: 700; color: var(--text-primary); letter-spacing: 1px;
 }
 
 .header-controls { display: flex; align-items: center; gap: 8px; }
 
 /* Navegador de Mês */
 .month-nav-compact {
-    display: flex;
-    align-items: center;
-    background: #FFF;
-    border: 2px solid var(--text-secondary);
-    border-radius: 8px;
-    padding: 2px;
+    display: flex; align-items: center; background: #FFF;
+    border: 2px solid var(--text-secondary); border-radius: 8px; padding: 2px;
 }
-
-.month-label {
-    text-align: center; cursor: pointer; padding: 0 5px; min-width: 90px;
-}
-#displayMonth { display: block; font-weight: 900; font-size: 0.85rem; }
+.month-label { text-align: center; cursor: pointer; padding: 0 5px; min-width: 85px; }
+#displayMonth { display: block; font-weight: 900; font-size: 0.8rem; }
 #displayYear { font-size: 0.75rem; color: var(--text-secondary); font-weight: 700; }
 
 .nav-arrow {
     background: transparent; border: none; font-size: 1.2rem;
     cursor: pointer; color: var(--color-dark); padding: 2px 8px;
 }
-.nav-arrow:active { transform: scale(0.9); }
+.nav-arrow:active { background: #DDD; border-radius: 4px; }
 
+/* Botões do Topo */
 .btn-tool {
     background: var(--color-dark); border: none; border-radius: 6px;
     padding: 6px 10px; cursor: pointer; font-size: 1.2rem; color: white;
     box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
 }
+.btn-privacy {
+    background: none; border: none; font-size: 1.3rem; cursor: pointer; padding: 0 5px;
+}
 
-/* Barra de Notificação */
-.notification-bar {
-    background: #FDEDEC; border-left: 5px solid var(--color-expense);
-    color: var(--color-expense); padding: 10px; border-radius: 4px;
-    margin-bottom: 15px; font-size: 0.9rem; font-weight: bold;
-    display: flex; justify-content: space-between; align-items: center;
-    animation: slideDown 0.4s ease-out;
+/* Modo Privacidade (Blur) */
+.blur-value {
+    color: transparent !important;
+    text-shadow: 0 0 10px rgba(0,0,0,0.4);
+    cursor: pointer; user-select: none;
 }
-.notification-bar button {
-    background: var(--color-expense); color: white; border: none;
-    padding: 4px 10px; border-radius: 4px; font-weight: bold; cursor: pointer;
-}
-@keyframes slideDown { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
 /* =========================================
-   4. VISÃO: PLANEJAMENTO (CHECKLIST)
+   4. PLANEJAMENTO (CHECKLIST)
    ========================================= */
 .planner-summary {
     background: #FFF; border: 1px solid var(--border-color);
@@ -240,10 +204,7 @@ body {
     background: #FFF; border: 2px dashed #999; padding: 15px;
     border-radius: var(--radius-std); margin-bottom: 25px;
 }
-.section-title {
-    margin: 0 0 10px 0; font-size: 0.85rem; font-weight: 800;
-    color: var(--text-muted); text-transform: uppercase;
-}
+.section-title { margin: 0 0 10px 0; font-size: 0.85rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
 .add-plan-box input, .add-plan-box select {
     width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #CCC;
     border-radius: 6px; font-family: var(--font-ui); font-size: 1rem;
@@ -254,8 +215,6 @@ body {
     padding: 12px; font-weight: 700; cursor: pointer; border-radius: 6px;
 }
 
-/* Checklists */
-.checklist-container { padding-bottom: 20px; }
 .check-title { margin: 20px 0 8px 0; font-size: 1rem; font-family: var(--font-hand); border-bottom: 2px solid #EEE; }
 .text-red { color: var(--color-expense); } .text-green { color: var(--color-income); } .text-blue { color: var(--color-invest); }
 
@@ -277,9 +236,8 @@ body {
 .checklist-item.done .check-name { text-decoration: line-through; }
 
 /* =========================================
-   5. VISÃO: DIÁRIO (EXTRATO)
+   5. DIÁRIO (LANÇAMENTOS)
    ========================================= */
-/* Resumo 3 Colunas */
 .summary-box {
     display: flex; background: #FFF; border: 2px solid var(--color-dark);
     border-radius: var(--radius-std); padding: 15px 5px; margin-bottom: 10px;
@@ -295,7 +253,6 @@ body {
     color: var(--text-secondary); background: rgba(0,0,0,0.05); padding: 8px; border-radius: 6px;
 }
 
-/* Abas Internas */
 .tabs-container { display: flex; gap: 8px; margin-bottom: 15px; }
 .tab-btn {
     flex: 1; padding: 10px; border: 1px solid #CCC; border-radius: 6px;
@@ -307,7 +264,6 @@ body {
 #btnTabIncome.active { background: var(--color-income); }
 #btnTabInvest.active { background: var(--color-invest); }
 
-/* Inputs */
 .form-container { background: #FFF; border: 1px solid #CCC; padding: 15px; border-radius: var(--radius-std); margin-bottom: 25px; }
 .category-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
 .cat-chip {
@@ -321,14 +277,8 @@ body {
 .input-wrapper { display: flex; flex-direction: column; flex: 1; }
 .input-wrapper.grow { flex: 2; }
 .input-wrapper label { font-size: 0.75rem; font-weight: 700; margin-bottom: 4px; color: var(--text-muted); }
-
-input {
-    width: 100%; padding: 12px; border: 2px solid #CCC; border-radius: 6px;
-    font-size: 1rem; font-family: var(--font-ui); background: #FFF;
-}
-input:focus { border-color: var(--color-invest); outline: none; }
+input { width: 100%; padding: 12px; border: 2px solid #CCC; border-radius: 6px; font-size: 1rem; font-family: var(--font-ui); background: #FFF; }
 .full-input { flex-grow: 1; }
-
 .btn-save {
     background: var(--color-dark); color: white; border: none; padding: 0 25px;
     border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 1rem;
@@ -336,8 +286,7 @@ input:focus { border-color: var(--color-invest); outline: none; }
 }
 .btn-save:active { transform: translateY(3px); box-shadow: none; }
 
-/* Lista Histórico */
-.list-container { border-top: 3px solid var(--color-dark); padding-top: 15px; }
+.list-container { border-top: 3px solid var(--color-dark); padding-top: 20px; }
 .list-title { font-family: var(--font-hand); font-size: 1.5rem; color: var(--text-secondary); margin-bottom: 10px; }
 .hist-item {
     display: flex; justify-content: space-between; align-items: center;
@@ -350,16 +299,18 @@ input:focus { border-color: var(--color-invest); outline: none; }
 .hist-info { flex-grow: 1; }
 .hist-cat { font-weight: 700; font-size: 0.95rem; display: block; }
 .hist-desc { font-size: 0.85rem; color: #777; }
+.btn-delete { border: none; background: none; color: #CCC; font-weight: bold; font-size: 1.2rem; cursor: pointer; padding: 5px; margin-left: 10px;}
+.btn-delete:hover { color: var(--color-expense); }
 
-/* Dica (Post-it) */
+/* Dica Post-it */
 .tip-postit {
-    background: #FFF9C4; color: #444; padding: 15px; margin-top: 30px; margin-bottom: 20px;
+    background: #FFF9C4; color: #444; padding: 15px; margin-top: 40px; margin-bottom: 20px;
     border: 1px solid #FBC02D; box-shadow: 3px 3px 6px rgba(0,0,0,0.1);
     transform: rotate(-1deg); font-family: var(--font-hand); font-size: 1.1rem;
 }
 
 /* =========================================
-   6. MODAIS E OVERLAYS
+   6. MODAIS
    ========================================= */
 .modal-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -372,20 +323,14 @@ input:focus { border-color: var(--color-invest); outline: none; }
 .modal-card {
     background: #FFF; width: 90%; max-width: 380px; padding: 25px;
     border-radius: 12px; border: 4px solid var(--color-dark); text-align: center;
-    max-height: 90vh; overflow-y: auto;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     transform: scale(0.9); transition: transform 0.3s;
 }
 .modal-overlay.open .modal-card { transform: scale(1); }
-
 .modal-card h3 { margin-top: 0; font-family: var(--font-hand); font-size: 1.8rem; color: var(--color-dark); }
 
-/* Seções dentro do modal (Backup/Relatório) */
 .modal-section { border-bottom: 1px dashed #CCC; padding-bottom: 15px; margin-bottom: 15px; }
 .modal-section h4 { margin: 0 0 10px 0; font-size: 1rem; color: var(--text-primary); }
-.modal-divider { border: 0; border-top: 1px dashed #CCC; margin: 10px 0; }
-
-.lbl-modal { display: block; text-align: left; font-weight: bold; margin-top: 10px; color: #555; font-size: 0.9rem; }
 .modal-select { width: 100%; padding: 10px; margin: 5px 0 15px 0; border: 2px solid #CCC; border-radius: 6px; font-size: 1rem; background: #FFF; }
 
 .modal-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
@@ -397,24 +342,33 @@ input:focus { border-color: var(--color-invest); outline: none; }
 .btn-action.csv { background: var(--color-income); }
 .btn-action.backup { background: var(--color-dark); }
 .btn-action.restore { background: var(--tab-planner); }
+.btn-action.install { background: #27AE60; margin-bottom: 10px; width: 100%; }
 
 .year-nav { display: flex; justify-content: center; align-items: center; gap: 20px; font-size: 1.3rem; font-weight: 700; margin-bottom: 15px; }
 .month-grid-modal { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 15px; }
 .m-btn { padding: 12px; border: 1px solid #CCC; cursor: pointer; font-weight: 700; background: #F5F5F5; border-radius: 4px; }
 .m-btn.selected { background: var(--color-dark); color: white; border-color: black; }
-
 .btn-cancel { background: none; border: none; text-decoration: underline; cursor: pointer; color: #777; margin-top: 10px; font-size: 1rem; }
 
+/* Notificação (Visual) */
+.notification-bar {
+    background: #FDEDEC; border-left: 5px solid var(--color-expense);
+    color: var(--color-expense); padding: 10px; border-radius: 4px;
+    margin-bottom: 15px; font-size: 0.9rem; font-weight: bold;
+    display: flex; justify-content: space-between; align-items: center;
+    animation: slideDown 0.4s ease-out;
+}
+.notification-bar button { background: var(--color-expense); color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; }
+@keyframes slideDown { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
 /* =========================================
-   7. RESPONSIVIDADE (MOBILE)
+   7. MOBILE RESPONSIVE
    ========================================= */
 @media (max-width: 480px) {
     .desk-container { padding: 5px; }
-    
     .notebook-tabs { margin-top: 60px; margin-right: -2px; }
     .side-tab { width: 30px; font-size: 0.75rem; height: 80px; }
     .side-tab.active { width: 38px; }
-    
     .notebook-frame { min-height: 90vh; }
     .spiral-binding { width: 35px; }
     .paper-page { padding: 15px 10px; border-radius: 0 10px 10px 0; }
@@ -427,8 +381,6 @@ input:focus { border-color: var(--color-invest); outline: none; }
     .checklist-item { flex-wrap: wrap; }
     .check-val { width: 100%; margin-left: 38px; margin-top: 5px; font-size: 0.9rem; color: #333; }
     
-    .sum-col span { font-size: 0.85rem; }
     .cat-chip { min-width: 60px; padding: 8px 10px; font-size: 0.8rem; }
-    
     .modal-card { width: 95%; padding: 15px; }
 }
